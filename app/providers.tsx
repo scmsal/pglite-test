@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { PGlite } from "@electric-sql/pglite"
-import { live, PGliteWithLive } from "@electric-sql/pglite/live"
-import { PGliteProvider } from "@electric-sql/pglite-react"
-import { ReactNode, useState, useEffect } from "react"
-import { Repl } from "@electric-sql/pglite-repl"
-import { drizzle, PgliteDatabase } from 'drizzle-orm/pglite';
-import { transactions } from "./schema"
+import { PGlite } from "@electric-sql/pglite";
+import { live, PGliteWithLive } from "@electric-sql/pglite/live";
+import { PGliteProvider } from "@electric-sql/pglite-react";
+import { ReactNode, useState, useEffect } from "react";
+import { Repl } from "@electric-sql/pglite-repl";
+import { drizzle, PgliteDatabase } from "drizzle-orm/pglite";
+import { transactions } from "./schema";
 
 const query = `
      CREATE TABLE IF NOT EXISTS transactions(
@@ -34,47 +34,49 @@ const query = `
         county_tax NUMERIC,
         state_tax NUMERIC
       );
-  `
+  `;
 
-export default function Providers(props: {
-  children: ReactNode
-}) {
-  const [pgLite, setPgLite] = useState<PGliteWithLive>()
-  const [db, setDb] = useState<PgliteDatabase>()
+export default function Providers(props: { children: ReactNode }) {
+  const [pgLite, setPgLite] = useState<PGliteWithLive>();
+  const [db, setDb] = useState<PgliteDatabase>();
 
   useEffect(() => {
     const initDb = async () => {
       const pgLite = await PGlite.create({
         dataDir: "idb://rentalTaxesDB",
         extensions: { live },
-      })
-      setPgLite(pgLite)
-      await pgLite.exec(query)
-      const db = drizzle({ connection: { dataDir: 'idb://rentalTaxesDB' }});
-      setDb(db)
-    }
+      });
+      setPgLite(pgLite);
+      await pgLite.exec(query);
+      //instead of creating a new connection with
+      //const db = drizzle({ connection: { dataDir: 'idb://rentalTaxesDB' }});
+      //reuse the original pgLite instance:
+      const db = drizzle(pgLite);
+      setPgLite(pgLite);
+      setDb(db);
+    };
 
-    initDb()
-  }, [])
+    initDb();
+  }, []);
 
   if (!db) {
-    return <div>Loading database...</div>
+    return <div>Loading database...</div>;
   }
 
-  async function handleAdd () {
+  async function handleAdd() {
     await db?.insert(transactions).values({
-      date: '2022-01-01',
-      arrivalDate: '2022-01-02',
-      type: 'hotel',
-      confirmationCode: 'CONF123',
-      bookingDate: '2022-01-01',
-      startDate: '2022-01-01',
-      endDate: '2022-01-02',
-      shortTerm: 'yes',
+      date: "2022-01-01",
+      arrivalDate: "2022-01-02",
+      type: "hotel",
+      confirmationCode: "CONF123",
+      bookingDate: "2022-01-01",
+      startDate: "2022-01-01",
+      endDate: "2022-01-02",
+      shortTerm: "yes",
       nights: 1,
-      guest: 'Jane Doe',
-      listing: 'Hotel XYZ',
-      details: 'Test booking',
+      guest: "Jane Doe",
+      listing: "Hotel XYZ",
+      details: "Test booking",
       amount: 100,
       paidOut: 90,
       serviceFee: 10,
@@ -85,12 +87,12 @@ export default function Providers(props: {
       earningsYear: 2022,
       countyTax: 5,
       stateTax: 5,
-    })
+    });
   }
 
-  async function handleLog () {
-    const result = await db?.select().from(transactions)
-    console.log('result', result)
+  async function handleLog() {
+    const result = await db?.select().from(transactions);
+    console.log("result", result);
   }
 
   return (
@@ -100,5 +102,5 @@ export default function Providers(props: {
       <button onClick={handleLog}>Log Transactions</button>
       {props.children}
     </PGliteProvider>
-  )
+  );
 }
