@@ -46,7 +46,6 @@ export default function Providers(props: { children: ReactNode }) {
         dataDir: "idb://rentalTaxesDB",
         extensions: { live },
       });
-      setPgLite(pgLite);
       await pgLite.exec(query);
       //instead of creating a new connection with
       //const db = drizzle({ connection: { dataDir: 'idb://rentalTaxesDB' }});
